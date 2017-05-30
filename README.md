@@ -1,10 +1,15 @@
 # DemoOfGitConflicts
-Replicates by automation the following three Git conflicts: 'content', 'add/add' and 'modify/delete'.
+Replicates by automation the following three Git conflicts:
+* CONFLICT (content)
+* CONFLICT (add/add)
+* CONFLICT (modify/delete)
 
 ## Instructions
 * Fork this project
 * Clone your forked project 
 * and dot-source AutomateCloning file!
+
+![Post AutomateCloning Call](postautomate.png)
 
 ## Explanation
 When the ps1 file is dot-sourced, it will emulate Git activities by creating authors named Alice and Bob.  Alice will create and push careless mistakes that are in her work.  Bob will pull and see those mistakes which he then corrects.  When he pushes he will recieve the three conflicts mentioned above.
