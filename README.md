@@ -21,4 +21,4 @@ I created this project during the time I was working on a bug fix for VSCode.  T
 
 ## Roadmap
 * Demonstrate detached branches in a merge conflict
-* Solutions for each scenario
+* Recommended solutions for each scenario
