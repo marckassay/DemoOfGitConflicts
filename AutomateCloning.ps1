@@ -1,19 +1,31 @@
 function Initialize
 {
     [CmdletBinding()]
-    Param()
+    Param
+    (
+        [Parameter(Mandatory = $False)]
+        [String]
+        $Url
+    )
 
     Write-Verbose "AutomateCloning script has started its setup procedure..."
+    Write-Verbose "Checking Url for validity: $Url"
+    Test-Url -Url $Url
+    Write-Verbose "Url is valid!"
+
     Push-Location -StackName "PriorLocation"
 
     Write-Verbose ("Setting CLI location to "+$Settings.HostLocation)
     Switch-ProjectLocation -Location $Settings.HostLocation
+    Write-Verbose ("CLI location is now: "+ (Get-Location).Path)
 
     Write-Verbose "Setting Git author to Alice"
     $Author = $User.Alice
 
     Write-Verbose ("Cloning "+$Settings.ProjectName+" repository into the subfolder for Alice")
     Switch-ProjectLocation -Location $Settings.ProjectDirectory -Clean
+    Write-Verbose ("CLI location is now: "+ (Get-Location).Path)
+
     Invoke-GitCommand -Command $GitCommand.Clone
     Switch-ProjectLocation -Location $Settings.ASubDirectory
 
@@ -110,6 +122,11 @@ function Invoke-GitCommand
 
     switch($Command)
     {
+        $GitCommand.PingRemote {
+                            [void]$StringBuilder.Append($GitProperty.Url)
+                            [void]$StringBuilder.Append(" --exit-code")
+                            $Author = '\'
+        }
         $GitCommand.Clone { 
                             [void]$StringBuilder.Append($GitProperty.Url+" ")
                             [void]$StringBuilder.Append($Author)
@@ -158,7 +175,11 @@ function Invoke-GitCommand
     Write-Host "$Author> " -ForegroundColor Yellow -NoNewline
     Write-Host $Expression -ForegroundColor Red
 
-    Invoke-Expression $Expression
+    $Output = Invoke-Expression $Expression 
+    
+    if($Output -and $Command -eq $GitCommand.PingRemote) {
+        Write-Error "Url is not valid!  Check to make that the following Url is correct: $Url" -ErrorAction Stop
+    }
 }
 
 function Edit-File
@@ -210,7 +231,6 @@ function Switch-ProjectLocation
     $PathExists = Test-Path -Path $Location
     if($PathExists -eq $False)
     {
-        Write-Host $Location
         New-Item -Path $Location -ItemType 'Directory'
     }
 
@@ -228,16 +248,35 @@ $GitCommand = @{
     Pull = 'pull';
     Config = 'config';
     Remove = 'rm';
+    PingRemote = 'ls-remote';
+}
+
+function Test-Url
+{
+    Param
+    (
+        [Parameter(Mandatory = $False)]
+        [String]
+        $Url
+    )
+
+    if($Url) {
+        $GitProperty.Url = $Url
+    } else {
+        $GitProperty.Url = (Select-String -Path .\.git\config -Pattern "(?<=url = ).*").Matches.Value
+    }
+    
+    Invoke-GitCommand -Command $GitCommand.PingRemote
 }
 
 $GitProperty = @{
+    Url = $ForkedUrl;
     UserName = 'user.name';
     UserEmail = 'user.email';
     Message = '-m ';
-    Url = 'https://github.com/marckassay/DemoOfGitConflicts.git';
     NewBranchFlag = '-b ';
-    BranchName = "branch_"+(New-Guid | Select-String -Pattern '\w{3}').Matches.Value;
     SetUpstreamOriginBranch = '--set-upstream origin '; 
+    BranchName = "branch_"+(New-Guid | Select-String -Pattern '\w{3}').Matches.Value;
 }
 
 $User = @{
@@ -273,5 +312,6 @@ $Content = @{
     ForBobInZFile = "The foundation of empire is art and science. Remove them or degrade them, and the empire is no more. Empire follows art and not vice versa as Englishmen suppose. - William Blake"; 
 }
 
-# Initialize -Verbose
-Initialize 
+#Initialize
+Initialize -Verbose 
+#Initialize -Verbose -Url 'https://github.com/marckassay/DemoOfGitConflicts.git'
