@@ -15,19 +15,19 @@ function Initialize
 
     Push-Location -StackName "PriorLocation"
 
-    Write-Verbose ("Setting CLI location to "+$Settings.HostLocation)
-    Switch-ProjectLocation -Location $Settings.HostLocation
+    Write-Verbose ("Setting CLI location to host directory")
+    Switch-ProjectLocation -Location 'HostDirectory'
     Write-Verbose ("CLI location is now: "+ (Get-Location).Path)
 
     Write-Verbose "Setting Git author to Alice"
     $Author = $User.Alice
 
-    Write-Verbose ("Cloning "+$Settings.ProjectName+" repository into the subfolder for Alice")
-    Switch-ProjectLocation -Location $Settings.ProjectDirectory -Clean
+    Switch-ProjectLocation -Location 'ProjectDirectory' -Clean
     Write-Verbose ("CLI location is now: "+ (Get-Location).Path)
-
+    Write-Verbose ("Cloning "+$Settings.ProjectName+" repository into the subfolder for Alice")
     Invoke-GitCommand -Command $GitCommand.Clone
-    Switch-ProjectLocation -Location $Settings.ASubDirectory
+    Switch-ProjectLocation -Location 'SubRepoA'
+    Write-Verbose ("CLI location is now: "+ (Get-Location).Path)
 
     Write-Verbose "Changing config to reflect that this repository is for Alice"
     Invoke-GitCommand -Command $GitCommand.Config -GitParam $GitProperty.UserName
@@ -47,11 +47,11 @@ function Initialize
     Invoke-GitCommand -Command $GitCommand.Commit -GitParam '-m {0}' -Value 'Alice is committing files X and Y'
     Invoke-GitCommand -Command $GitCommand.Push -GitParam $GitProperty.SetUpstreamOriginBranch -Value $GitProperty.BranchName
     
-    Write-Verbose ("Cloning "+$Settings.ProjectDirectory+" repository into the subfolder for Bob")
+    Write-Verbose ("Cloning "+$Settings.ProjectName+" repository into the subfolder for Bob")
     $Author = $User.Bob
-    Switch-ProjectLocation -Location $Settings.ProjectDirectory
+    Switch-ProjectLocation -Location 'ProjectDirectory'
     Invoke-GitCommand -Command $GitCommand.Clone
-    Switch-ProjectLocation -Location $Settings.BSubDirectory
+    Switch-ProjectLocation -Location 'SubRepoB'
 
     Write-Verbose "Changing config to reflect that this repository is for Bob"
     Invoke-GitCommand -Command $GitCommand.Config -GitParam $GitProperty.UserName
@@ -60,7 +60,7 @@ function Initialize
 
     Write-Verbose "Alice now deletes X.txt file"
     $Author = $User.Alice
-    Switch-ProjectLocation -Location $Settings.ASubDirectory
+    Switch-ProjectLocation -Location 'SubRepoA'
     Invoke-GitCommand -Command $GitCommand.Remove -Value $File.X
 
     Write-Verbose "Alice now edits Y.txt file"
@@ -76,7 +76,7 @@ function Initialize
    
     Write-Verbose "Bob makes a correction in X.txt file"
     $Author = $User.Bob
-    Switch-ProjectLocation -Location $Settings.BSubDirectory
+    Switch-ProjectLocation -Location 'SubRepoB'
     Edit-File -FileName $File.X -Content $Content.ForBobCorrectionsInXFile
 
     Write-Verbose "Bob makes a correction in Y.txt file"
@@ -218,11 +218,28 @@ function Switch-ProjectLocation
     [CmdletBinding()]
     Param
     (
-        [Parameter(Mandatory = $False)]
+        [Parameter(Mandatory = $true)]
+        [ValidateSet("HostDirectory", "ProjectDirectory", "SubRepoA", "SubRepoB")]
         [string]$Location,
 
         [switch]$Clean
     )
+
+    switch($Location)
+    {
+        'HostDirectory' {
+            $Location = $Env:LOCALAPPDATA
+        }
+        'ProjectDirectory' {
+            $Location = $Env:LOCALAPPDATA+"\"+$Settings.ProjectName
+        }
+        'SubRepoA' {
+            $Location = $Env:LOCALAPPDATA+"\"+$Settings.ProjectName+"\"+$User.Alice
+        }
+        'SubRepoB' {
+            $Location = $Env:LOCALAPPDATA+"\"+$Settings.ProjectName+"\"+$User.Bob
+        }
+    }
 
     if ($Clean) {
         Remove-Item $Location -Force -Recurse -ErrorAction 'SilentlyContinue'
@@ -279,19 +296,13 @@ $GitProperty = @{
     BranchName = "branch_"+(New-Guid | Select-String -Pattern '\w{3}').Matches.Value;
 }
 
+$Settings = @{
+    ProjectName = 'DemoOfGitConflicts';
+}
+
 $User = @{
     Alice = 'Alice';
     Bob = 'Bob';
-}
-
-$Settings = @{
-    ProjectName = 'DemoOfGitConflicts';
-
-    PriorLocation = 'PriorLocation';
-    HostLocation = $Env:LOCALAPPDATA;
-    ProjectDirectory = ($Settings.HostLocation+"\"+$Settings.ProjectName);
-    ASubDirectory = ($Settings.ProjectDirectory+"\"+$User.Alice);
-    BSubDirectory = ($Settings.ProjectDirectory+"\"+$User.Bob);
 }
 
 $File = @{
@@ -302,7 +313,7 @@ $File = @{
 
 $Content = @{
     ForAlexInXFile = "i think I could that if I only know how to begin.... For, you see, so many out-of-the-way things had happened lately that Alice had begun to think that very few things indeed were like-really imposible. - Lewis ?";
-    ForAlexInYFile = "life would-like be infinitely bigger, if we could only be born like at the age of ninety and gradually approach 8. - ???";
+    ForAlexInYFile = "life would-like be infinitely bigger, if we could only be born like at the age of ninety and gradually approach 8. - unknown";
     ForAlexInYEditFile = "life would be infinitely bigger, if I could only be born at the age of 90 and gradually approach 9. - Mark ?";
     ForAlexInZFile = "The basis of umpire is art+music. Remove them and that the empire is no more. Empire follows art and not vice versa as you suppose. - ??";
 
@@ -313,5 +324,4 @@ $Content = @{
 }
 
 #Initialize
-Initialize -Verbose 
-#Initialize -Verbose -Url 'https://github.com/marckassay/DemoOfGitConflicts.git'
+Initialize -Verbose
