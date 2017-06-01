@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 The foundation of empire is art and science. Remove them or degrade them, and the empire is no more. Empire follows art and not vice versa as Englishmen suppose. - William Blake
+=======
+The basis of umpire is art+music. Remove them and that the empire is no more. Empire follows art and not vice versa as you suppose. - ??
+>>>>>>> origin/branch_336
