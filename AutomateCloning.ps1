@@ -312,10 +312,10 @@ $File = @{
 }
 
 $Content = @{
-    ForAlexInXFile = "i think I could that if I only know how to begin.... For, you see, so many out-of-the-way things had happened lately that Alice had begun to think that very few things indeed were like-really imposible. - Lewis ?";
-    ForAlexInYFile = "life would-like be infinitely bigger, if we could only be born like at the age of ninety and gradually approach 8. - unknown";
+    ForAlexInXFile = "i think i could that if I only know how to begin.... For, u see, so many out-of-the-way things had happened lately that Alice had begun to think that very few things indeed were like-really imposible. - Lewis ?";
+    ForAlexInYFile = "life would-like be infinitely bigger, if we could only be bornlike at the age of ninety and gradually approach 8. - unknown";
     ForAlexInYEditFile = "life would be infinitely bigger, if I could only be born at the age of 90 and gradually approach 9. - Mark ?";
-    ForAlexInZFile = "The basis of umpire is art+music. Remove them and that the empire is no more. Empire follows art and not vice versa as you suppose. - ??";
+    ForAlexInZFile = "that basis of umpire is art+music. remove them and that the empire is no more.empire follows art and not vice versa as you suppose. - ??";
 
 
     ForBobCorrectionsInXFile = "I think I could, if I only knew how to begin. For, you see, so many out-of-the-way things had happened lately that Alice had begun to think that very few things indeed were really impossible. - Lewis Carrol";
